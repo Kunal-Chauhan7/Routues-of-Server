@@ -1,63 +1,43 @@
-const http = require("http");
+const express = require('express');
 const port = 7770;
-const activites = ["code","games","music"];
+const app = express();
+const activites = ['Code','Anime','Music'];
 
-http
-.createServer((req, res) => {
-    const {method,url} = req;
-    if(url === "/todos"){
-        if(method === "GET"){
-            res.writeHead(200);
-            res.write(activites.toString());
+app.use(express.json());
+
+app.get('/todos',(req,res)=>{
+    res.status(200).send(activites);
+});
+
+app.post('/todos',(req,res)=>{
+    //let item_to_add = req.body["item"];
+    let item_to_add = req.body.item;
+    activites.push(item_to_add);
+    res.status(201).send({
+        "message" : "Item added"
+    });
+});
+
+app.delete('/todos',(req,res)=>{
+    let item_to_del = req.body["item"];
+    activites.find((element,index)=>{
+        if(element === item_to_del){
+            activites.splice(index,1);
         }
-        else if(method === "POST"){
-            let body = "";
-            req.on('error',(err)=>{
-                console.log(err);
-            }).on('data',(chunk)=>{
-                body+=chunk;
-                console.log(chunk);
-            }).on('end',()=>{
-                body = JSON.parse(body);
-                console.log(body);
-                let newToDo = activites;
-                newToDo.push(body["name"]);
-                newToDo.push(body.Age);
-                console.log(newToDo);
-                res.writeHead(201);
-            });
-        }
-        else if(method === "DELETE"){
-            let body = "";
-            req.on('error',(err)=>{
-                console.error(err);
-            }).on('data',(chunk)=>{
-                body+= chunk;
-            }).on('end',()=>{
-                body = JSON.parse(body);
-                //let todel = body["item"];
-                let todel = body.item;
-                //for (let i = 0; i < activites.length; i++) {
-                //    if(todel === activites[i]){
-                //        activites.splice(i,1);
-                //        console.log(activites);
-                //    }
-                //}
-                activites.find((element,index)=>{
-                    if(element === todel){
-                        activites.splice(index,1);
-                    }
-                })
-            })
-        res.writeHead(204);
-        }
-    }
-    else{
-        res.writeHead(404);
-    }
-    res.end();
     })
-.listen(port, () => {
-    console.log(`Working on the ${port}`);  
-    }
-);
+    res.status(202).send({
+        "message" : "Item deleted"
+    });
+});
+
+app.all('/todos',(req,res)=>{
+    res.status(505).send();
+});
+
+app.all('*',(req,res)=>{
+    res.status(404).send();
+});
+
+app.listen(port,()=>{
+    console.log(`Working on the ${port}`);
+});
